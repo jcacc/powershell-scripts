@@ -1,3 +1,7 @@
+> **This fork adds [AdminDeck](AdminDeck/README.md)**: a Windows GUI for every script in this repo. Double-click `AdminDeck.cmd`, pick a script, fill in the generated form, and run it.
+>
+> ![AdminDeck](AdminDeck/docs/screenshot.png)
+
 ## PowerShell Scripts for Microsoft 365 Management, Reporting, and Auditing
 
 ### Introduction
