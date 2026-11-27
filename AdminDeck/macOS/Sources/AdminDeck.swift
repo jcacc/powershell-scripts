@@ -601,7 +601,7 @@ final class AppModel: ObservableObject {
     }
 
     func installPwsh() {
-        Shell.openInTerminal("echo 'Installing PowerShell 7 with Homebrew...'\nbrew install --cask powershell && echo && echo 'Done. Return to AdminDeck and click Retry.'", terminal: settings.terminal)
+        Shell.openInTerminal("echo 'Installing PowerShell 7 with Homebrew...'\nbrew install powershell && echo && echo 'Done. Return to AdminDeck and click Retry.'", terminal: settings.terminal)
     }
 
     func installModule(_ name: String) {
@@ -758,7 +758,7 @@ struct SetupView: View {
                     VStack(alignment: .leading, spacing: 10) {
                         Label("PowerShell 7 is required", systemImage: "exclamationmark.triangle.fill").font(.headline).foregroundStyle(.orange)
                         Text("The scripts run in pwsh. Install it with Homebrew:")
-                        Text("brew install --cask powershell").font(.system(.body, design: .monospaced)).textSelection(.enabled)
+                        Text("brew install powershell").font(.system(.body, design: .monospaced)).textSelection(.enabled)
                             .padding(8).frame(maxWidth: .infinity, alignment: .leading).background(.quaternary, in: RoundedRectangle(cornerRadius: 6))
                         HStack {
                             Button("Install in Terminal") { model.installPwsh() }.buttonStyle(.borderedProminent)
@@ -870,7 +870,7 @@ struct DetailView: View {
             HStack {
                 Text(model.status).lineLimit(1).truncationMode(.middle)
                 Spacer()
-                Text(model.pwsh.map { "pwsh \(model.psVersion) \u{00B7} \($0)" } ?? "PowerShell 7 not found: brew install --cask powershell")
+                Text(model.pwsh.map { "pwsh \(model.psVersion) \u{00B7} \($0)" } ?? "PowerShell 7 not found: brew install powershell")
                     .lineLimit(1).truncationMode(.head)
             }
             .font(.caption).foregroundStyle(.secondary)

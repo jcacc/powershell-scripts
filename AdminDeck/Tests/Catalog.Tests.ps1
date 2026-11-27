@@ -51,7 +51,7 @@ foreach ($s in $catalog) {
     $t = $null; $e = $null
     [void][System.Management.Automation.Language.Parser]::ParseInput($inv.Command, [ref]$t, [ref]$e)
     Assert ($e.Count -eq 0) "$($s.Id): generated command does not parse: $($inv.Command)"
-    $launch = New-AdLaunchScript -Invocation $inv -Title $s.Name -WorkingDirectory 'C:\Temp\it''s here' -Transcript
+    $launch = New-AdLaunchScript -Invocation $inv -Title $s.Name -WorkingDirectory (Join-Path ([IO.Path]::GetTempPath()) "it's here") -Transcript
     [void][System.Management.Automation.Language.Parser]::ParseInput($launch, [ref]$t, [ref]$e)
     Assert ($e.Count -eq 0) "$($s.Id): launch script does not parse"
     Assert ($launch -notmatch 'hunter2') "$($s.Id): secret leaked into launch script"
@@ -101,7 +101,9 @@ $launch = New-AdLaunchScript -Invocation $inv -Title 'Dummy' -WorkingDirectory $
 $enc = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($launch))
 foreach ($k in $inv.Secrets.Keys) { [Environment]::SetEnvironmentVariable($k, $inv.Secrets[$k], 'Process') }
 try {
-    $proc = Start-Process -FilePath (Join-Path $PSHOME 'powershell.exe') -ArgumentList @('-NoLogo', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', $enc) -WorkingDirectory $tmp -PassThru -Wait -WindowStyle Hidden
+    $sp = @{ FilePath = (Get-Process -Id $PID).Path; ArgumentList = @('-NoLogo', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-EncodedCommand', $enc); WorkingDirectory = $tmp; PassThru = $true; Wait = $true }
+    if ($PSVersionTable.PSVersion.Major -lt 6 -or $IsWindows) { $sp.WindowStyle = 'Hidden' }
+    $proc = Start-Process @sp
 } finally { foreach ($k in $inv.Secrets.Keys) { [Environment]::SetEnvironmentVariable($k, $null, 'Process') } }
 $out = Join-Path $tmp 'result.csv'
 Assert (Test-Path -LiteralPath $out) 'dummy script did not write result.csv into the working folder'

@@ -7,7 +7,7 @@ A native SwiftUI version of [AdminDeck](../README.md) for the scripts in this re
 ## Requirements
 
 - macOS 14.4 or later. The binary is universal: Apple Silicon and Intel.
-- PowerShell 7: `brew install --cask powershell`. If pwsh is missing, the app offers to run this for you in Terminal.
+- PowerShell 7: `brew install powershell`. If pwsh is missing, the app offers to run this for you in Terminal.
 - Modules for the scripts you use, e.g. `Microsoft.Graph`, `ExchangeOnlineManagement`. The **Modules** button shows which are installed and installs any of them.
 
 ## Build
