@@ -29,7 +29,23 @@ $script:KnownModules = @(
 # New-Object / Add-Member / Set-Location do not count.
 $script:ModifyPattern = '(?i)\b(Set|Remove|New|Add|Update|Grant|Revoke|Disable|Enable|Clear|Reset|Move|Restore)-(Mg|Mailbox|PnP|Team|CsTeams|Cs|Distribution|Unified|SPO|Recipient|Inbox|Calendar|Msol|AzureAD|Compliance|Retention|User|Group|Transport|Mail|RoleGroup|ManagementRole|OrganizationConfig|App|CASMailbox|Contact|Federated|Organization)\w*'
 
-$script:SecretPattern = '(?i)(password|passwd|pwd|secret)'
+# ' plus the curly single quotes U+2018..U+201B (built from char codes: keep this file ASCII).
+$script:QuoteClass = "['" + [char]0x2018 + [char]0x2019 + [char]0x201A + [char]0x201B + ']'
+
+# Things that only work on Windows (matters for the macOS frontend running pwsh).
+$script:WindowsOnlyChecks = [ordered]@{
+    # wscript.shell is only the end-of-run "open the output file?" popup; the report itself still works.
+    'COM automation'              = '(?i)-ComObject\s+(?!wscript\.shell\b)'
+    'Out-GridView'                = '(?i)\bOut-GridView\b'
+    'MSOnline module'             = '(?i)\bConnect-MsolService\b'
+    'AzureAD module'              = '(?i)\bConnect-AzureAD\b'
+    'SharePoint Online module'    = '(?i)\bConnect-SPOService\b'
+    'Windows Forms / WPF'         = '(?i)System\.Windows\.Forms|PresentationFramework'
+    'WMI'                         = '(?i)\bGet-WmiObject\b'
+    'Internet Explorer'           = '(?i)\biexplore\b'
+}
+
+$script:SecretPattern ='(?i)(password|passwd|pwd|secret)'
 $script:FilePattern   = '(?i)(csv|file|path|html)$|^(import|input)|csvpath|filepath|template'
 $script:FolderPattern = '(?i)(folder|directory|dir|outputpath|logpath|exportpath)$'
 
@@ -151,6 +167,7 @@ function Get-AdScriptCatalog {
         $code = [regex]::Replace($text, '(?s)<#.*?#>|#[^\r\n]*|''[^''\r\n]*''|"[^"\r\n]*"', '')
         $modifies = [regex]::IsMatch($code, $script:ModifyPattern) -or ($category -eq 'Management & Automation')
         $writesToScriptRoot = $text -match '(?i)\$PSScriptRoot\\'
+        $winOnly = @(foreach ($k in $script:WindowsOnlyChecks.Keys) { if ($code -match $script:WindowsOnlyChecks[$k]) { $k } })
         $relative = $file.FullName.Substring($RepoRoot.Length).TrimStart('\', '/')
 
         [pscustomobject]@{
@@ -170,6 +187,8 @@ function Get-AdScriptCatalog {
             Modules            = $modules.ToArray()
             Modifies           = [bool]$modifies
             WritesToScriptRoot = [bool]$writesToScriptRoot
+            WindowsOnly        = ($winOnly.Count -gt 0)
+            WindowsOnlyReasons = $winOnly
             SearchText         = (@($name, $header.Title, $description, $keywords, ($services -join ' '), ($header.Highlights -join ' ')) -join ' ').ToLowerInvariant()
         }
     }
@@ -280,7 +299,8 @@ function Get-AdScriptParameters {
 
 function ConvertTo-AdQuoted {
     param([string]$Value)
-    "'" + ($Value -replace "'", "''") + "'"
+    # PowerShell also treats curly single quotes as quote characters, so double those too.
+    "'" + ($Value -replace $script:QuoteClass, '$0$0') + "'"
 }
 
 function Test-AdParameterValue {

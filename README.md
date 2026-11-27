@@ -1,4 +1,4 @@
-> **This fork adds [AdminDeck](AdminDeck/README.md)**: a Windows GUI for every script in this repo. Double-click `AdminDeck.cmd`, pick a script, fill in the generated form, and run it.
+> **This fork adds [AdminDeck](AdminDeck/README.md)**: a GUI for every script in this repo. On Windows, double-click `AdminDeck.cmd`. On macOS, build the native app in [`AdminDeck/macOS`](AdminDeck/macOS/README.md) (`./build.sh --install`). Then pick a script, fill in the generated form, and run it.
 >
 > ![AdminDeck](AdminDeck/docs/screenshot.png)
 

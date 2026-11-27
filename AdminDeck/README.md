@@ -54,7 +54,9 @@ Passwords and client secrets are never saved, never shown in the command preview
 |---|---|
 | `AdminDeck.cmd` (repo root) | double-click launcher, no console window |
 | `AdminDeck/AdminDeck.ps1` | the WPF app |
-| `AdminDeck/AdminDeck.Catalog.psm1` | script discovery, metadata, parameter parsing, command building (no UI) |
+| `AdminDeck/AdminDeck.Catalog.psm1` | script discovery, metadata, parameter parsing, command building (no UI), shared by both apps |
+| `AdminDeck/Export-AdCatalog.ps1` | writes the whole catalog with parameters as JSON (used by the macOS app) |
+| `AdminDeck/macOS/` | native SwiftUI app for macOS that runs scripts in pwsh via Terminal; see its [README](macOS/README.md) |
 | `AdminDeck/Tests/Catalog.Tests.ps1` | headless tests: parses every script, round-trips the generated commands, and launches a dummy script end-to-end |
 
 Run the tests:

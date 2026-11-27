@@ -8,6 +8,12 @@ Import-Module (Join-Path $here '..\AdminDeck.Catalog.psm1') -Force
 $failures = New-Object System.Collections.Generic.List[string]
 function Assert($cond, $msg) { if (-not $cond) { $failures.Add($msg) } }
 
+# Windows PowerShell 5.1 reads BOM-less files as ANSI, so AdminDeck's own PowerShell must stay ASCII.
+foreach ($f in (Get-ChildItem -LiteralPath (Join-Path $here '..') -Recurse -File | Where-Object { $_.Extension -in '.ps1', '.psm1' })) {
+    $bad = @([IO.File]::ReadAllBytes($f.FullName) | Where-Object { $_ -gt 127 }).Count
+    Assert ($bad -eq 0) "$($f.Name) has $bad non-ASCII bytes"
+}
+
 $sw = [Diagnostics.Stopwatch]::StartNew()
 $catalog = @(Get-AdScriptCatalog -RepoRoot $repo)
 "Catalog: $($catalog.Count) scripts in $([int]$sw.Elapsed.TotalMilliseconds) ms"
@@ -84,11 +90,11 @@ param([string]$Name, [string]$Password, [switch]$Flag, [nullable[datetime]]$Star
 [pscustomobject]@{
     Name = $Name; Password = $Password; Flag = [bool]$Flag; StartDate = $StartDate.ToString('yyyy-MM-dd HH:mm')
     Users = ($Users -join '|'); Days = $Days; Cwd = (Get-Location).Path; EnvLeft = [string]$env:ADECK_SECRET_1
-} | Export-Csv -NoTypeInformation -Path '.\result.csv'
+} | Export-Csv -NoTypeInformation -Encoding UTF8 -Path '.\result.csv'
 '@
 $dp = (Get-AdScriptParameters -Path $dummy).Parameters
 $inv = ConvertTo-AdInvocation -ScriptPath $dummy -Parameters $dp -Values @{
-    Name = "O'Brien `"quoted`" `$notavar"; Password = "p@ss'w`$rd"; Flag = $true; StartDate = '2026-11-01 13:45'; Users = "a@x.com`nb@x.com"; Days = '7'
+    Name = "O'Brien `"quoted`" `$notavar $([char]0x2019)curly$([char]0x2019)"; Password = "p@ss'w`$rd"; Flag = $true; StartDate = '2026-11-01 13:45'; Users = "a@x.com`nb@x.com"; Days = '7'
 }
 Assert ($inv.Errors.Count -eq 0) "dummy errors: $($inv.Errors -join '; ')"
 $launch = New-AdLaunchScript -Invocation $inv -Title 'Dummy' -WorkingDirectory $tmp -Transcript
@@ -101,7 +107,7 @@ $out = Join-Path $tmp 'result.csv'
 Assert (Test-Path -LiteralPath $out) 'dummy script did not write result.csv into the working folder'
 if (Test-Path -LiteralPath $out) {
     $r = Import-Csv -LiteralPath $out
-    Assert ($r.Name -eq "O'Brien `"quoted`" `$notavar") "name round-trip: $($r.Name)"
+    Assert ($r.Name -eq "O'Brien `"quoted`" `$notavar $([char]0x2019)curly$([char]0x2019)") "name round-trip: $($r.Name)"
     Assert ($r.Password -eq "p@ss'w`$rd") 'secret did not arrive intact'
     Assert ($r.Flag -eq 'True') 'switch not passed'
     Assert ($r.StartDate -eq '2026-11-01 13:45') "date: $($r.StartDate)"
