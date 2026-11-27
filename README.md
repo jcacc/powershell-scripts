@@ -1,3 +1,7 @@
+> **This fork adds [AdminDeck](AdminDeck/README.md)**: a GUI for every script in this repo. On Windows, double-click `AdminDeck.cmd`. On macOS, build the native app in [`AdminDeck/macOS`](AdminDeck/macOS/README.md) (`./build.sh --install`). Then pick a script, fill in the generated form, and run it.
+>
+> ![AdminDeck](AdminDeck/docs/screenshot.png)
+
 ## PowerShell Scripts for Microsoft 365 Management, Reporting, and Auditing
 
 ### Introduction
